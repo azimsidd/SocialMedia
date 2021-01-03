@@ -2,6 +2,8 @@ package com.thecodingshef.socialmedia.Dao
 
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.OnSuccessListener
+import com.google.android.gms.tasks.Task
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import com.thecodingshef.socialmedia.Model.User
@@ -23,8 +25,10 @@ class UserDao {
             }
 
         }
+    }
 
+    fun getUserById(uId:String):Task<DocumentSnapshot>{
 
-
+        return userCollections.document(uId).get()
     }
 }

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">SocialMedia</string>
+    <string name="post">post</string>
 </resources>
