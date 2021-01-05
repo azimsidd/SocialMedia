@@ -5,14 +5,19 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CircleCrop
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
+import com.squareup.okhttp.internal.DiskLruCache
 import com.thecodingshef.socialmedia.Model.Post
+import kotlinx.android.synthetic.main.post_item.view.*
 
-class PostAdapter(options: FirestoreRecyclerOptions<Post>) :
+class PostAdapter(options: FirestoreRecyclerOptions<Post>, val listener: PostClickListener) :
     FirestoreRecyclerAdapter<Post, PostAdapter.PostViewHolder>(options) {
 
 
@@ -28,14 +33,20 @@ class PostAdapter(options: FirestoreRecyclerOptions<Post>) :
     }
 
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostAdapter.PostViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int):PostViewHolder {
 
-        val view=LayoutInflater.from(parent.context).inflate(R.layout.post_item,parent,false)
+        val viewHolder=PostViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.post_item,parent,false))
 
-        return PostViewHolder(view)
+        viewHolder.likeButton.setOnClickListener{
+
+            listener.onLikeClick(snapshots.getSnapshot(viewHolder.adapterPosition).id)
+        }
+
+        return viewHolder
     }
 
-    override fun onBindViewHolder(holder: PostAdapter.PostViewHolder, position: Int, model: Post) {
+
+    override fun onBindViewHolder(holder: PostViewHolder, position: Int, model: Post) {
 
 
         holder.postText.text=model.text
@@ -43,5 +54,22 @@ class PostAdapter(options: FirestoreRecyclerOptions<Post>) :
         holder.createdAt.text=Utils.getTimeAgo(model.createdAt)
         Glide.with(holder.userImage.context).load(model.createdBy.imageUrl).circleCrop().into(holder.userImage)
         holder.likeCount.text=model.likedBy.size.toString()
+
+
+        val auth = Firebase.auth
+        val currentUserId = auth.currentUser!!.uid
+        val isLiked = model.likedBy.contains(currentUserId)
+        if(isLiked) {
+            holder.likeButton.setImageDrawable(ContextCompat.getDrawable(holder.likeButton.context, R.drawable.ic_liked))
+        } else {
+            holder.likeButton.setImageDrawable(ContextCompat.getDrawable(holder.likeButton.context, R.drawable.ic_unliked))
+        }
+
+
     }
+}
+
+interface PostClickListener{
+
+    fun onLikeClick(postId:String)
 }

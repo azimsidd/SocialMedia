@@ -5,7 +5,9 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
+import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import com.thecodingshef.socialmedia.Model.Post
@@ -38,8 +40,30 @@ class PostDao {
 
     }
 
-    fun getAllPost(){
 
-        postCollection.document().get()
+    fun getPostById(postId: String): Task<DocumentSnapshot> {
+        return postCollection.document(postId).get()
+    }
+
+    fun updateLike(postId: String) {
+
+        GlobalScope.launch {
+            val currentUserId=auth.currentUser!!.uid
+            val post=getPostById(postId).await().toObject(Post::class.java)!!
+            val isLiked=post.likedBy.contains(currentUserId)
+
+            if(isLiked){
+                post.likedBy.remove(currentUserId)
+            }
+            else{
+                post.likedBy.add(currentUserId)
+            }
+
+            postCollection.document(postId).set(post)
+        }
+
+
+
+
     }
 }
